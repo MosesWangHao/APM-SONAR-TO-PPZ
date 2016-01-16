@@ -1,34 +1,41 @@
-#include <SR04.h>
-#include <Wire.h>
 // Connect sr04 sonar to PPZ AP IIC 
 // by moses mail: moses.hao@gmail.com 2016
+#include <SR04.h>
+#include <Wire.h>
 
 #define DEBUG
 
+//=======Hardware connect ===========
 #define TRIG_PIN 3
 #define ECHO_PIN 2
+//=======SONAR range min -- max======
 #define SONAR_MIN_RANGE 1   //1cm
 #define SONAR_MAX_RANGE 400 //400cm
+//======I2c address==================
 #define I2C_ADDRESS 0X38    //i2c address 
 #define ERROR_VALUE 0X4FFF  //ERROR VALUE 
 SR04 sr04 = SR04(ECHO_PIN,TRIG_PIN);
 uint16_t tempread, reading_cm;
 byte dataflag = true;
 
-
-int Sonarfilter(int filterlen) {
+int Sonarfilter(int filterlen) 
+{
     int min = SONAR_MAX_RANGE, max = 0, avg = 0, d = 0;
-    if (filterlen < 3) {
+    if (filterlen < 3) 
+    {
         return ERROR_VALUE;
     }
-    for (int x = 0; x < filterlen; x++) {
+    for (int x = 0; x < filterlen; x++) 
+    {
         d = sr04.Distance();
         if((d < SONAR_MIN_RANGE) || (d > SONAR_MAX_RANGE))
           return ERROR_VALUE;   //get a error data
-        if (d < min) {
+        if (d < min) 
+        {
             min = d;
         }
-        if (d > max) {
+        if (d > max) 
+        {
             max = d;
         }
         avg += d;
@@ -50,9 +57,10 @@ void setup()
   Wire.onRequest(requestEvent); // register event
 }
 
-
+//====================Main loop process sonar data ===================
 void loop()
 {
+  //just read 5 times for filter
   tempread=Sonarfilter(5); 
   if(tempread != ERROR_VALUE)
   {
@@ -63,7 +71,7 @@ void loop()
   {
     dataflag = false;
   }
-  #ifdef DEBUG
+  #ifdef DEBUG  //In debug mode, data will send to serialport
   if(dataflag == true)
   {
     Serial.println(reading_cm);
